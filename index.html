@@ -8,8 +8,8 @@
 .rankItem.critItem{border-color:#ffc7c7;background:#fff5f5}.rankItem.atenItem{border-color:#ffe0a3;background:#fffaf0}.rankItem.bomItem{border-color:#b9e7c8;background:#f2fff6}.rankItem.acimaItem{border-color:#caa7e8;background:#f8f0ff}
 .rankTopo{padding:16px 18px;margin-bottom:0}
 .rankTopo h2{margin:0 0 10px;font-size:22px}
-.rankTopoGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
-.rankTopoCard{border:1px solid var(--borda);border-radius:16px;padding:13px;background:#f8fbff;cursor:pointer;min-height:112px;transition:.15s}
+.rankTopoGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;max-height:360px;overflow:auto;padding-right:4px}
+.rankTopoCard{border:1px solid var(--borda);border-radius:16px;padding:12px;background:#f8fbff;cursor:pointer;min-height:104px;transition:.15s}
 .rankTopoCard:hover{transform:translateY(-1px);box-shadow:0 8px 20px #17324d18}
 .rankTopoCard.active{border-color:#1689d6;box-shadow:inset 4px 0 #1689d6}
 .rankTopoCard .rankHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
@@ -49,7 +49,7 @@
   <label class="filterLabel">Alunos em risco de evasão</label>
   <select class="filterSelect" id="fEvasao" onchange="renderAll()"><option value="todos">Todos</option><option value="com">Com alunos em risco</option><option value="sem">Sem registro de risco</option></select>
 </div>
-<button class="btn" onclick="baixarPDF()">⇩ Baixar PDF da escola</button><button class="btn" onclick="location.reload()">Atualizar dados</button><h2>🏆 Ranking das escolas</h2><div id="rank"></div></aside><main class="main"><div class="card rankTopo" id="rankTopo"></div><div class="summary" id="summary"></div><div class="card school" id="school"></div></main></div></section>
+<button class="btn" onclick="baixarPDF()">⇩ Baixar PDF da escola</button><button class="btn" onclick="location.reload()">Atualizar dados</button></aside><main class="main"><div class="card rankTopo" id="rankTopo"></div><div class="summary" id="summary"></div><div class="card school" id="school"></div></main></div></section>
 <section id="tab-gre" style="display:none"><div class="wrap"><aside class="side noPrint"><h2>🏆 Ranking das GREs</h2><p>Ranking por mês, conforme o Excel geral.</p><select class="search" id="mesGre" onchange="renderGRE()"></select></aside><main class="main"><div class="card school"><h2>Dados Gerais das GREs</h2><div id="greResumo"></div></div><div class="card school greGrid"><div><h2>Ranking geral de todas as GREs</h2><p>Ordenado do maior para o menor percentual no mês selecionado.</p><table class="tbl greTable" id="greRank"></table></div><div><h2>Destaque 21ª GRE</h2><div id="gre21"></div></div></div></main></div></section>
 <section id="tab-evasao" style="display:none"><div class="wrap"><aside class="side noPrint"><h2>🚨 Alunos em risco de evasão</h2><p>Dados conforme relatório geral enviado.</p><input class="search" id="evSearch" placeholder="🔍 Pesquisar aluno, escola ou etapa" oninput="renderEvasaoGeral()"><select class="search" id="evEscola" onchange="renderEvasaoGeral()"></select><button class="btn" onclick="baixarPDFEvasao()">⇩ Baixar PDF da evasão</button><div id="evRankSide"></div></aside><main class="main"><div class="card school"><h2>Resumo geral da evasão — 21ª GRE</h2><div id="evResumo"></div></div><div class="card school evRank"><div><h2>Ranking por escola</h2><p>Escolas ordenadas pela quantidade de alunos em risco.</p><table class="tbl" id="evRankTable"></table></div><div><h2>Relação de alunos em risco</h2><div id="evTabela"></div></div></div></main></div></section>
 <script>
@@ -158,12 +158,12 @@ function renderRanking(){
     const extra=makeExtra(e);
     return `<div class="rankItem ${escolas[selected]===e?'active':''} ${st[0]}Item" onclick="selected=${escolas.indexOf(e)};renderAll()"><div class="pos">${i+1}</div><div><b>${e.nome}</b><div class="bar"><span style="width:${Math.min(e.percent,100)}%;background:${colorEscola(e.percent)}"></span></div>${extra.length?`<small>${extra.join(' • ')}</small>`:''}</div><b>${e.percent.toLocaleString('pt-BR',{maximumFractionDigits:1})}%</b></div>`
   }).join('')||'Nenhuma escola encontrada com os filtros aplicados';
-  document.getElementById('rank').innerHTML=listHtml;
+  const rankLateral=document.getElementById('rank');
+  if(rankLateral) rankLateral.innerHTML=listHtml;
 
-  const topList=list.slice(0,8);
   const rankTopo=document.getElementById('rankTopo');
   if(rankTopo){
-    rankTopo.innerHTML=`<h2>🏆 Ranking das escolas</h2><p class="rankTopoHint">Prévia rápida das escolas filtradas. Clique em um card para abrir os dados da escola.</p><div class="rankTopoGrid">${topList.map((e,i)=>{
+    rankTopo.innerHTML=`<h2>🏆 Ranking das escolas</h2><p class="rankTopoHint">Todas as escolas da listagem, agora exibidas no topo. Clique em um card para abrir os dados da escola.</p><div class="rankTopoGrid">${list.map((e,i)=>{
       const st=status(e.percent);
       const extra=makeExtra(e);
       return `<div class="rankTopoCard ${escolas[selected]===e?'active':''} ${st[0]}Item" onclick="selected=${escolas.indexOf(e)};renderAll()"><div class="rankHead"><div class="rankNum">${i+1}</div><div class="rankName">${e.nome}</div><div class="rankPct">${e.percent.toLocaleString('pt-BR',{maximumFractionDigits:1})}%</div></div><div class="bar"><span style="width:${Math.min(e.percent,100)}%;background:${colorEscola(e.percent)}"></span></div>${extra.length?`<small>${extra.join(' • ')}</small>`:''}</div>`
